@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>جلب جهات الاتصال</title>
+  </head>
+  <body>
+    <button onclick="getContacts()">جلب جهات الاتصال</button>
+    <ul id="contacts"></ul>
+
+    <script>
+      async function getContacts() {
+        if ('contacts' in navigator && 'ContactsManager' in window) {
+          try {
+            const props = ['name', 'tel'];
+            const contacts = await navigator.contacts.select(props, { multiple: true });
+            const list = document.getElementById('contacts');
+            contacts.forEach(contact => {
+              const li = document.createElement('li');
+              li.textContent = `${contact.name}: ${contact.tel}`;
+              list.appendChild(li);
+            });
+          } catch (error) {
+            alert('فشل في جلب جهات الاتصال: ' + error);
+          }
+        } else {
+          alert('المتصفح لا يدعم الوصول إلى جهات الاتصال');
+        }
+      }
+    </script>
+  </body>
+</html>
