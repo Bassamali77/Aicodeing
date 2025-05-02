@@ -1,50 +1,97 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>دردشة ذكاء اصطناعي</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <title>قص صورة</title>
+  <!-- ربط Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- ربط مكتبة Cropper.js -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f8f9fa; direction: rtl; }
-    #chat { height: 300px; overflow-y: scroll; border: 1px solid #dee2e6; background-color: white; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-    .chat-msg { margin-bottom: 10px; }
-    .user { font-weight: bold; color: #0d6efd; }
-    .ai { font-weight: bold; color: #198754; }
+    body { direction: rtl; }
+    .container { max-width: 900px; }
+    #image { max-width: 100%; height: auto; }
   </style>
 </head>
 <body>
+
   <div class="container py-5">
-    <h2 class="text-center mb-4">دردشة الذكاء الاصطناعي</h2>
-    <div id="chat" class="mb-3"></div>
-    <div class="input-group">
-      <input type="text" id="userInput" class="form-control" placeholder="اكتب رسالتك...">
-      <button class="btn btn-primary" onclick="sendMessage()">إرسال</button>
+    <h2 class="text-center mb-4">قص خلفية الصورة</h2>
+
+    <div class="row">
+      <div class="col-12">
+        <!-- تحميل الصورة -->
+        <input type="file" id="uploadImage" class="form-control mb-4">
+      </div>
+
+      <div class="col-12">
+        <!-- مكان عرض الصورة التي سيتم قصها -->
+        <div id="imageContainer" class="mb-4">
+          <img id="image" src="" alt="الصورة" />
+        </div>
+      </div>
+
+      <div class="col-12 text-center">
+        <!-- أزرار التحكم في القص -->
+        <button class="btn btn-primary" id="cropButton">قص الصورة</button>
+        <button class="btn btn-secondary" id="resetButton">إعادة تعيين</button>
+      </div>
+
+      <div class="col-12 mt-4">
+        <!-- مكان عرض الصورة المقطوعة -->
+        <h4>الصورة المقطوعة:</h4>
+        <img id="croppedImage" src="" alt="الصورة المقطوعة" class="img-fluid"/>
+      </div>
     </div>
   </div>
 
+  <!-- ربط Bootstrap و Cropper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
   <script>
-    function sendMessage() {
-      const input = document.getElementById('userInput');
-      const message = input.value.trim();
-      if (!message) return;
+    let cropper;
 
-      const chat = document.getElementById('chat');
-      chat.innerHTML += `<div class="chat-msg"><span class="user">أنت:</span> ${message}</div>`;
-      input.value = '';
+    // تحميل الصورة
+    document.getElementById('uploadImage').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const image = document.getElementById('image');
+          image.src = event.target.result;
+          
+          // تفعيل Cropper.js بعد تحميل الصورة
+          if (cropper) {
+            cropper.destroy(); // تدمير النسخة السابقة من Cropper
+          }
+          cropper = new Cropper(image, {
+            aspectRatio: 16 / 9, // نسبة العرض إلى الارتفاع (اختياري)
+            viewMode: 1,
+            autoCropArea: 0.65,
+            responsive: true,
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-      fetch('chat.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `message=${encodeURIComponent(message)}`
-      })
-      .then(response => response.json())
-      .then(data => {
-        chat.innerHTML += `<div class="chat-msg"><span class="ai">الذكاء الاصطناعي:</span> ${data.reply}</div>`;
-        chat.scrollTop = chat.scrollHeight;
-      });
-    }
+    // زر قص الصورة
+    document.getElementById('cropButton').addEventListener('click', function () {
+      const canvas = cropper.getCroppedCanvas();
+      const croppedImage = document.getElementById('croppedImage');
+      croppedImage.src = canvas.toDataURL(); // عرض الصورة المقطوعة
+    });
+
+    // زر إعادة تعيين الصورة
+    document.getElementById('resetButton').addEventListener('click', function () {
+      const image = document.getElementById('image');
+      image.src = ''; // إخفاء الصورة
+      document.getElementById('croppedImage').src = ''; // إخفاء الصورة المقطوعة
+      document.getElementById('uploadImage').value = ''; // إعادة تعيين المدخل
+    });
   </script>
+
 </body>
 </html>
