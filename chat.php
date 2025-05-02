@@ -1,6 +1,6 @@
 
 <?php
-$apiKey = 'YOUR_OPENAI_API_KEY'; // استبدله بمفتاحك الحقيقي
+$apiKey = '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';
 
 $userMessage = $_POST['message'] ?? '';
 
